@@ -1,0 +1,210 @@
+---
+title: "Homework I - Solution"
+author: "Gul Inan"
+date: "10/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Answer
+
+- **Answer 1:**
+
+- Load the `tidyverse` library first. We will need it throughout the homework.
+
+```{r, warning=F, message=F}
+library(tidyverse)
+```
+
+- Read in the data into R and check it:
+
+```{r}
+#i could not import csv file, and i
+#got help from here: https://stackoverflow.com/a/45977065
+library(readxl)
+music_revenue <- read_excel("data/Revenue_Chart_Full_Data.xlsx", skip = 1) 
+```
+
+- See a portion of the data:
+
+```{r}
+music_revenue %>% 
+  head(5)
+```
+
+- Check the structure of the data:
+
+```{r}
+str(music_revenue)
+```
+
+- **Answer 2:**
+
+```{r}
+revenue_18_20 <- music_revenue %>% 
+                 select("Year"="Year (copy)", "Format", "Value"="Value (Actual)") %>% 
+                 filter(Year >= 2018) %>%
+                 arrange(Year) %>% 
+                 mutate(Value = as.numeric(Value))
+```
+
+- A portion of the data:
+
+```{r}
+revenue_18_20 %>% 
+              head(10)
+```
+ 
+- The structure of the data:
+
+```{r}
+revenue_18_20 %>% 
+  str()
+```
+
+- Get the summary statistics:
+
+```{r}
+annual_retail <- revenue_18_20 %>% 
+                 group_by(Year) %>% 
+                  summarize(tol_revenue = sum(Value)) 
+```
+
+```{r}
+annual_retail %>% 
+              print()
+```
+
+
+- **Answer 3:**
+
+```{r, eval=F}
+streaming <- c("Paid Subscription", "On-Demand Streaming (Ad-Supported)", "Other Ad-Supported Streaming", 
+"SoundExchange Distributions", "Limited Tier Paid Subscription")
+
+stream_20 <- revenue_18_20 %>% 
+             filter(Year == 2020) %>% 
+             filter(Format %in% streaming) %>% 
+             select(Value) %>% 
+             summarize(total_stream = sum(Value))
+```
+
+
+```{r, eval=F}
+stream_20  %>% 
+           View()
+```
+
+- **Answer 4:**
+
+```{r}
+#define some character vectors to increase code readability.
+stream <- c("Paid Subscription", "On-Demand Streaming (Ad-Supported)", "Other Ad-Supported Streaming", "SoundExchange Distributions", "Limited Tier Paid Subscription")
+physical <- c("LP/EP", "CD")
+download <- c("Download Album", "Download Single")
+```
+
+```{r}
+revenue_categorized_20 <- revenue_18_20 %>% 
+                          filter(Year == 2020) %>% 
+                          mutate(category = case_when( Format %in% stream ~ "Streaming",
+                               Format == "Synchronization" ~ "Synchronization",
+                               Format %in% physical ~ "Physical",
+                               Format %in% download ~ "Digital Downloads",
+                               TRUE ~ "The Others"
+    
+  ))
+```
+
+- View the new data
+
+```{r, eval=F}
+View(revenue_categorized_20)
+```
+
+- Calculate the percentage of each category share:
+
+```{r}
+share_table   <- revenue_categorized_20 %>%
+                 group_by(category) %>%
+                 summarize(cat_total=sum(Value)) %>% 
+                 mutate(prop = round(cat_total /sum(cat_total) * 100,2))
+```
+
+- View the data.
+
+```{r, eval=F}
+share_table %>% 
+  View()
+```
+
+- Get the table.
+
+
+```{r}
+share_table %>% 
+  print()
+```
+
+
+- **Answer 5:**
+
+- Reproduce Figure 5. It is a stacked bar chart. We need to convert Year and Format into character variables.
+
+
+```{r}
+fig_5_data <- revenue_18_20 %>%
+              filter(Format %in% c("SoundExchange Distributions", "Other Ad-Supported Streaming")) %>% 
+mutate_at(vars("Year", "Format"), as.character)
+```
+
+```{r}
+fig_5_data %>% 
+  View()
+```
+
+```{r}
+str(fig_5_data)
+```
+
+- Generate the Figure.
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+labels <- c("$ 1,161", "$1,115", "$1,1559")
+```
+
+
+
+```{r}
+fig_5_data %>% 
+ggplot(aes(x=Year, y=Value, fill=Format)) + 
+  geom_col(position="stack") +
+  scale_fill_manual(values = c("#c5db84","#347b7b")) +
+  scale_y_continuous(expand = c(0,0)) +
+  ggtitle("U.S. DIGITAL AND CUSTOMIZED \n RADIO REVENUES", subtitle = "Source: RIAA" ) +
+  labs("y" = "$ MILLIONS") +
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5, face="bold"),
+        plot.subtitle =  element_text(hjust = 0.5),
+        axis.title.x = element_blank(),
+        axis.line.x  = element_line(size = 0.6),
+        axis.line.y  = element_blank(),
+        axis.text.y  = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.title = element_blank(),
+        legend.position = "bottom")
+#geom_text(aes(label = labels, y = c(208.17685,208.17685,208.17685)), size = 3)
+```
+
+
+
+
+
