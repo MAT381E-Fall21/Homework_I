@@ -161,7 +161,8 @@ share_table %>%
 ```{r}
 fig_5_data <- revenue_18_20 %>%
               filter(Format %in% c("SoundExchange Distributions", "Other Ad-Supported Streaming")) %>% 
-mutate_at(vars("Year", "Format"), as.character)
+#mutate_at(vars("Format"), as.factor)
+mutate_at(vars("Year", "Format"), as.factor)
 ```
 
 ```{r, eval=F}
@@ -184,7 +185,6 @@ labels <- c("$ 1,161", "$1,115", "$1,1559")
 ```
 
 
-
 ```{r}
 fig_5_data %>% 
 ggplot(aes(x=Year, y=Value, fill=Format)) + 
@@ -202,8 +202,8 @@ ggplot(aes(x=Year, y=Value, fill=Format)) +
         axis.text.y  = element_blank(),
         axis.ticks.y = element_blank(),
         legend.title = element_blank(),
-        legend.position = "bottom")
-#geom_text(aes(label = labels, y = c(208.17685,208.17685,208.17685)), size = 3)
+        legend.position = "bottom")  # i could not add the labels this time since i do not have so much time. but it should be done ggtext layer.
+#if you see a way, let me know that.
 ```
 
 
